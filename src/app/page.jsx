@@ -13,30 +13,26 @@ export default function HomePage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
             {/* Hero Section */}
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 text-center">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                    Welcome to Galaxy
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24 text-center">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent animate-in slide-in-from-bottom-4 duration-500">
+                    Secure. Scalable. Modern.
                 </h1>
-                <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 mb-4 max-w-3xl mx-auto">
-                    A modern, secure platform demonstrating enterprise-grade authentication
-                    and role-based access control
+                <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 mb-6 max-w-3xl mx-auto animate-in slide-in-from-bottom-5 duration-500 delay-100">
+                    The ultimate reference platform for enterprise-grade authentication,
+                    RBAC, and full-stack Next.js development.
                 </p>
-                <p className="text-sm sm:text-base text-gray-500 mb-8 max-w-2xl mx-auto">
-                    Built with Next.js 16, this platform showcases best practices in web development,
-                    security, and user experience design. Perfect for learning modern full-stack development.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-in slide-in-from-bottom-6 duration-500 delay-200">
                     <Link href="/register" className="w-full sm:w-auto">
-                        <Button size="lg" className="w-full sm:w-auto">Get Started</Button>
+                        <Button size="lg" className="w-full sm:w-auto px-8 shadow-md">Get Started</Button>
                     </Link>
                     <Link href="/about" className="w-full sm:w-auto">
-                        <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                        <Button size="lg" variant="outline" className="w-full sm:w-auto px-8">
                             Learn More
                         </Button>
                     </Link>
                     <Link href="/contact" className="w-full sm:w-auto">
-                        <Button size="lg" variant="ghost" className="w-full sm:w-auto">
-                            Contact Us
+                        <Button size="lg" variant="ghost" className="w-full sm:w-auto px-8">
+                            Contact Sales
                         </Button>
                     </Link>
                 </div>

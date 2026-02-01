@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { BackButton } from "@/components/ui/back-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -107,20 +106,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 relative">
-      <div className="absolute top-20 left-4 md:left-8">
-        <BackButton />
-      </div>
+    <>
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
         strategy="afterInteractive"
       />
 
-      <Card className="w-full max-w-md">
+      <Card className="w-full shadow-lg border-t-4 border-t-primary">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Sign In to Galaxy</CardTitle>
           <CardDescription className="text-center">
-            Enter your credentials to access your account
+            Welcome back! Please enter your details to access your account
           </CardDescription>
         </CardHeader>
 
@@ -186,6 +182,11 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+
+      {/* Footer link for help */}
+      <div className="mt-6 text-center text-xs text-gray-500">
+        <p>Need help? <Link href="/contact" className="underline hover:text-gray-700">Contact Support</Link></p>
+      </div>
+    </>
   );
 }

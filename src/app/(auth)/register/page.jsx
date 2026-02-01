@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { BackButton } from "@/components/ui/back-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -73,17 +72,19 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 relative">
-            <div className="absolute top-20 left-4 md:left-8">
-                <BackButton />
-            </div>
+        <>
             <Script
                 src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
                 strategy="afterInteractive"
             />
 
-            <Card className="w-full max-w-md">
+            <Card className="w-full shadow-lg border-t-4 border-t-primary">
                 <CardHeader className="space-y-1">
+                    <div className="flex justify-center mb-2">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80">
+                            Step 1 of 2
+                        </span>
+                    </div>
                     <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
                     <CardDescription className="text-center">
                         Enter your details to create your Galaxy account
@@ -143,6 +144,6 @@ export default function RegisterPage() {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </>
     );
 }

@@ -98,10 +98,18 @@ function VerifyEmailContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="w-full">
+      <Card className="w-full shadow-lg border-t-4 border-t-primary">
         <CardHeader>
-          <CardTitle className="text-center">Email Verification</CardTitle>
+          <div className="flex justify-center mb-2">
+            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80">
+              Step 2 of 2
+            </span>
+          </div>
+          <CardTitle className="text-center text-2xl font-bold">Email Verification</CardTitle>
+          <CardDescription className="text-center">
+            Verify your identity to secure your account
+          </CardDescription>
         </CardHeader>
         <CardContent className="text-center space-y-4">
           {/* Verifying State */}
