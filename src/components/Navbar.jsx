@@ -101,10 +101,18 @@ export default function Navbar() {
                                     )}
 
                                     {/* User Avatar / Profile Indicator */}
-                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20" title={user.email}>
-                                        <span className="text-xs font-semibold">
-                                            {user.email?.charAt(0).toUpperCase() || <User className="h-4 w-4" />}
-                                        </span>
+                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20 overflow-hidden" title={user.email}>
+                                        {user.profileImage ? (
+                                            <img
+                                                src={user.profileImage}
+                                                alt={user.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-xs font-semibold">
+                                                {user.email?.charAt(0).toUpperCase() || <User className="h-4 w-4" />}
+                                            </span>
+                                        )}
                                     </div>
 
                                     <Button onClick={logout} variant="destructive" size="sm" className="ml-1 shadow-sm h-8 text-xs">

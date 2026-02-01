@@ -20,6 +20,8 @@ export const authenticate = async (req) => {
         name: true,
         email: true,
         role: true,
+        profileImage: true,
+        createdAt: true,
       },
     });
 

@@ -122,3 +122,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide Next.js development indicator */
+#__next-build-watcher,
+[data-nextjs-toast-wrapper],
+nextjs-portal {
+  display: none !important;
+}

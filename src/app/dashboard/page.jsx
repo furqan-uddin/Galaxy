@@ -71,7 +71,7 @@ function DashboardContent() {
                         </Link>
 
                         {/* Change Password */}
-                        <Link href="/dashboard/profile">
+                        <Link href="/dashboard/security">
                             <Card className="hover:shadow-md transition-all hover:bg-gray-50/50 cursor-pointer h-full group">
                                 <CardHeader className="space-y-1">
                                     <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 mb-2 group-hover:scale-110 transition-transform">
