@@ -2,101 +2,175 @@
 
 import Script from "next/script";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
-
-import { apiRequest } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { login } = useAuth();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [showResend, setShowResend] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resending, setResending] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setShowResend(false);
 
     try {
-      // ✅ Ensure reCAPTCHA is loaded
       if (!window.grecaptcha) {
         toast.error("reCAPTCHA not loaded. Please try again.");
+        setLoading(false);
         return;
       }
 
-      // ✅ Execute reCAPTCHA v3
       const captchaToken = await window.grecaptcha.execute(
         process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
         { action: "login" }
       );
 
-      // ✅ Send captchaToken INSIDE body
-      const data = await apiRequest("/auth/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({
-          email,
-          password,
-          captchaToken,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, captchaToken }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.code === "EMAIL_NOT_VERIFIED") {
+          setResendEmail(data.email || email);
+          setShowResend(true);
+          toast.error(data.message);
+        } else {
+          toast.error(data.message || "Login failed");
+        }
+        return;
+      }
 
       login(data.token, data.user);
       toast.success("Login successful");
-      router.push("/dashboard");
     } catch (err) {
-      toast(
-        <div>
-          <strong>Login failed</strong>
-          <p>{err?.message || "Invalid email or password"}</p>
-        </div>
-      );
+      toast.error(err?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleResendVerification = async () => {
+    setResending(true);
+
+    try {
+      const res = await fetch("/api/auth/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resendEmail }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message);
+      }
+
+      toast.success("Verification email sent! Please check your inbox.");
+      setShowResend(false);
+    } catch (err) {
+      toast.error(err?.message || "Failed to send verification email");
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      {/* reCAPTCHA v3 script */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
         strategy="afterInteractive"
       />
 
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center">Login</CardTitle>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">
+            Enter your credentials to access your account
+          </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
+
+          {showResend && (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
+              <p className="text-sm text-yellow-800">
+                <strong>Email not verified.</strong> Click below to receive a new verification link.
+              </p>
+              <Button
+                onClick={handleResendVerification}
+                disabled={resending}
+                variant="outline"
+                className="w-full"
+              >
+                {resending ? "Sending..." : "Resend Verification Email"}
+              </Button>
+            </div>
+          )}
+
+          <div className="text-center text-sm space-y-2 pt-2">
+            <p>
+              <Link href="/forgot-password" className="text-blue-600 hover:underline">
+                Forgot your password?
+              </Link>
+            </p>
+            <p>
+              <span className="text-gray-600">Don't have an account? </span>
+              <Link href="/register" className="text-blue-600 hover:underline font-medium">
+                Register
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

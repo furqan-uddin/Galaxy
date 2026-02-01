@@ -1,16 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { apiRequest } from "@/lib/api";
+import Link from "next/link";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [status, setStatus] = useState("verifying");
+  const [status, setStatus] = useState("verifying"); // verifying, success, error, expired
   const [message, setMessage] = useState("");
+
+  // For resend functionality
+  const [email, setEmail] = useState("");
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -21,47 +29,174 @@ export default function VerifyEmailPage() {
       }
 
       try {
-        await apiRequest("/auth/verify-email", {
+        const res = await fetch("/api/auth/verify-email", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token }),
         });
 
+        const data = await res.json();
+
+        if (!res.ok) {
+          // Check if it's an expired token error
+          if (data.message?.includes("expired") || data.message?.includes("Invalid")) {
+            setStatus("expired");
+            setMessage("Your verification link has expired or is invalid.");
+          } else {
+            setStatus("error");
+            setMessage(data.message || "Verification failed");
+          }
+          return;
+        }
+
         setStatus("success");
-        setMessage("Email verified successfully. Redirecting to login...");
+        setMessage("Email verified successfully! Redirecting to login...");
 
         setTimeout(() => {
           router.push("/login");
         }, 2000);
       } catch (err) {
         setStatus("error");
-        setMessage(err.message);
+        setMessage(err.message || "Something went wrong");
       }
     };
 
     verifyEmail();
   }, [token, router]);
 
+  const handleResendVerification = async (e) => {
+    e.preventDefault();
+
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setResending(true);
+
+    try {
+      const res = await fetch("/api/auth/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message);
+      }
+
+      toast.success("Verification email sent! Please check your inbox.");
+      setStatus("sent");
+      setMessage("A new verification email has been sent to " + email);
+    } catch (err) {
+      toast.error(err?.message || "Failed to send verification email");
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow text-center">
-        {status === "verifying" && (
-          <p className="text-gray-700">
-            Verifying your email...
-          </p>
-        )}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-center">Email Verification</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          {/* Verifying State */}
+          {status === "verifying" && (
+            <div className="py-8">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">Verifying your email...</p>
+            </div>
+          )}
 
-        {status === "success" && (
-          <p className="text-green-600 font-medium">
-            {message}
-          </p>
-        )}
+          {/* Success State */}
+          {status === "success" && (
+            <div className="py-8">
+              <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">✓</span>
+              </div>
+              <p className="text-green-600 font-medium">{message}</p>
+            </div>
+          )}
 
-        {status === "error" && (
-          <p className="text-red-600 font-medium">
-            {message}
-          </p>
-        )}
-      </div>
+          {/* Sent State */}
+          {status === "sent" && (
+            <div className="py-8">
+              <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">📧</span>
+              </div>
+              <p className="text-blue-600 font-medium">{message}</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Please check your inbox and spam folder.
+              </p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {status === "error" && (
+            <div className="py-8">
+              <div className="h-16 w-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">✕</span>
+              </div>
+              <p className="text-red-600 font-medium">{message}</p>
+              <Link href="/login">
+                <Button variant="outline" className="mt-4">
+                  Back to Login
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {/* Expired State - Show resend form */}
+          {status === "expired" && (
+            <div className="py-4 space-y-4">
+              <div className="h-16 w-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <p className="text-yellow-700 font-medium">{message}</p>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+                <p className="text-sm text-yellow-800 mb-3">
+                  Enter your email address to receive a new verification link:
+                </p>
+                <form onSubmit={handleResendVerification} className="space-y-3">
+                  <Input
+                    type="email"
+                    placeholder="Your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <Button type="submit" disabled={resending} className="w-full">
+                    {resending ? "Sending..." : "Send New Verification Link"}
+                  </Button>
+                </form>
+              </div>
+
+              <Link href="/login">
+                <Button variant="ghost" className="mt-2">
+                  Back to Login
+                </Button>
+              </Link>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

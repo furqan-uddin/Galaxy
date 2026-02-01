@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { sendEmail } from "@/lib/mailer";
+import { isValidEmail, validatePassword } from "@/lib/apiHandler";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 
@@ -13,6 +14,23 @@ export async function POST(req) {
       return NextResponse.json(
         { message: "All fields are required" },
         { status: 400 }
+      );
+    }
+
+    // Validate email format
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { message: "Invalid email format" },
+        { status: 400 }
+      );
+    }
+
+    // Validate password length
+    const passwordError = validatePassword(password, 6);
+    if (passwordError) {
+      return NextResponse.json(
+        { message: passwordError.message },
+        { status: passwordError.status }
       );
     }
 

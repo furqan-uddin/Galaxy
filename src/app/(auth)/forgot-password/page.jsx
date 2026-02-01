@@ -1,89 +1,108 @@
 "use client";
 
 import { useState } from "react";
-import { apiRequest } from "@/lib/api";
+import Link from "next/link";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [sent, setSent] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
 
-    try {
-      await apiRequest("/auth/forgot-password", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      });
+        try {
+            const res = await fetch("/api/auth/forgot-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
 
-      setSuccess(
-        "If this email is registered, a reset password link has been sent."
-      );
-      setEmail("");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+            const data = await res.json();
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white p-6 rounded-lg shadow"
-      >
-        <h1 className="text-2xl font-bold mb-4 text-center">
-          Forgot Password
-        </h1>
+            if (!res.ok) {
+                throw new Error(data.message);
+            }
 
-        {error && (
-          <p className="mb-3 text-sm text-red-600 text-center">
-            {error}
-          </p>
-        )}
+            toast.success("Password reset link sent! Check your email.");
+            setSent(true);
+        } catch (err) {
+            toast.error(err?.message || "Failed to send reset link");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        {success && (
-          <p className="mb-3 text-sm text-green-600 text-center">
-            {success}
-          </p>
-        )}
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold text-center">Forgot Password</CardTitle>
+                    <CardDescription className="text-center">
+                        Enter your email and we'll send you a reset link
+                    </CardDescription>
+                </CardHeader>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            className="w-full border px-3 py-2 rounded"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+                <CardContent>
+                    {!sent ? (
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email Address</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="john@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <Button type="submit" className="w-full" disabled={loading}>
+                                {loading ? "Sending..." : "Send Reset Link"}
+                            </Button>
+                        </form>
+                    ) : (
+                        <div className="text-center space-y-4 py-4">
+                            <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                                <span className="text-3xl">✓</span>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="font-medium text-green-600">Email Sent!</p>
+                                <p className="text-sm text-gray-600">
+                                    Check your inbox for the password reset link.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="mt-6 text-center text-sm space-y-2">
+                        <p>
+                            <Link href="/login" className="text-blue-600 hover:underline">
+                                Back to Login
+                            </Link>
+                        </p>
+                        <p>
+                            <span className="text-gray-600">Don't have an account? </span>
+                            <Link href="/register" className="text-blue-600 hover:underline font-medium">
+                                Register
+                            </Link>
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 disabled:opacity-60"
-        >
-          {loading ? "Sending link..." : "Send reset link"}
-        </button>
-
-        <div className="mt-4 text-sm text-center">
-          <a
-            href="/login"
-            className="text-blue-600 hover:underline"
-          >
-            Back to Login
-          </a>
-        </div>
-      </form>
-    </div>
-  );
+    );
 }

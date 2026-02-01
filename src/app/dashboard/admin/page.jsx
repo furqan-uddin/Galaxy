@@ -9,11 +9,11 @@ export default function AdminDashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-//   useEffect(() => {
-//     // if (!loading && (!user || user.role !== "ADMIN")) {
-//     //   router.push("/dashboard");
-//     // }
-//   }, [user, loading, router]);
+  useEffect(() => {
+    if (!loading && (!user || user.role !== "ADMIN")) {
+      router.push("/dashboard");
+    }
+  }, [user, loading, router]);
 
   if (!user || user.role !== "ADMIN") return null;
 

@@ -12,24 +12,43 @@ export async function POST(req) {
       );
     }
 
-    const user = await prisma.user.findFirst({
+    // First, try to find user with this token (regardless of expiry)
+    const userWithToken = await prisma.user.findFirst({
       where: {
         emailVerifyToken: token,
-        emailVerifyExpiry: {
-          gt: new Date(),
-        },
       },
     });
 
-    if (!user) {
+    // Token not found at all
+    if (!userWithToken) {
       return NextResponse.json(
-        { message: "Invalid or expired token" },
+        { message: "Invalid verification token", code: "INVALID_TOKEN" },
         { status: 400 }
       );
     }
 
+    // Token found but expired
+    if (userWithToken.emailVerifyExpiry && new Date() > new Date(userWithToken.emailVerifyExpiry)) {
+      return NextResponse.json(
+        {
+          message: "Verification link has expired. Please request a new one.",
+          code: "TOKEN_EXPIRED",
+          expired: true,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Already verified
+    if (userWithToken.isEmailVerified) {
+      return NextResponse.json(
+        { message: "Email is already verified", code: "ALREADY_VERIFIED" },
+        { status: 200 }
+      );
+    }
+
     await prisma.user.update({
-      where: { id: user.id },
+      where: { id: userWithToken.id },
       data: {
         isEmailVerified: true,
         emailVerifyToken: null,
@@ -39,7 +58,7 @@ export async function POST(req) {
 
     await prisma.activityLog.create({
       data: {
-        userId: user.id,
+        userId: userWithToken.id,
         action: "EMAIL_VERIFIED",
       },
     });

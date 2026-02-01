@@ -67,8 +67,18 @@ export async function POST(req) {
     }
 
     if (!user.isEmailVerified) {
+      // Check if verification token has expired
+      const isTokenExpired = user.emailVerifyExpiry && new Date() > new Date(user.emailVerifyExpiry);
+
       return NextResponse.json(
-        { message: "Please verify your email before logging in" },
+        {
+          message: isTokenExpired
+            ? "Your verification link has expired. Please request a new one."
+            : "Please verify your email before logging in. Check your inbox.",
+          code: "EMAIL_NOT_VERIFIED",
+          expired: isTokenExpired,
+          email: user.email, // Return email so frontend can resend
+        },
         { status: 403 }
       );
     }

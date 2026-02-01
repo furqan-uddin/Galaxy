@@ -2,120 +2,143 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { apiRequest } from "@/lib/api";
+import Link from "next/link";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Suspense } from "react";
 
-export default function ResetPasswordPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+function ResetPasswordContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const token = searchParams.get("token");
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match");
+            return;
+        }
+
+        if (password.length < 6) {
+            toast.error("Password must be at least 6 characters");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const res = await fetch("/api/auth/reset-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token, newPassword: password }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message);
+            }
+
+            toast.success("Password reset successful!");
+            router.push("/login");
+        } catch (err) {
+            toast.error(err?.message || "Failed to reset password");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (!token) {
-      setError("Invalid or missing reset token");
-      return;
+        return (
+            <div className="text-center space-y-4">
+                <div className="h-16 w-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                    <span className="text-3xl">✕</span>
+                </div>
+                <div className="space-y-2">
+                    <p className="font-medium text-red-600">Invalid Reset Link</p>
+                    <p className="text-sm text-gray-600">
+                        This password reset link is invalid or has expired.
+                    </p>
+                </div>
+                <Link href="/forgot-password">
+                    <Button variant="outline">Request New Link</Button>
+                </Link>
+            </div>
+        );
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="password">New Password</Label>
+                <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                />
+                <p className="text-xs text-gray-500">Minimum 6 characters</p>
+            </div>
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+            <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                />
+            </div>
 
-    setLoading(true);
+            <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Resetting..." : "Reset Password"}
+            </Button>
 
-    try {
-      await apiRequest("/auth/reset-password", {
-        method: "POST",
-        body: JSON.stringify({
-          token,
-          newPassword: password,
-        }),
-      });
+            <div className="text-center text-sm pt-2">
+                <Link href="/login" className="text-blue-600 hover:underline">
+                    Back to Login
+                </Link>
+            </div>
+        </form>
+    );
+}
 
-      setSuccess("Password reset successful. Redirecting to login...");
+export default function ResetPasswordPage() {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold text-center">Reset Password</CardTitle>
+                    <CardDescription className="text-center">
+                        Enter your new password below
+                    </CardDescription>
+                </CardHeader>
 
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white p-6 rounded-lg shadow"
-      >
-        <h1 className="text-2xl font-bold mb-4 text-center">
-          Reset Password
-        </h1>
-
-        {error && (
-          <p className="mb-3 text-sm text-red-600 text-center">
-            {error}
-          </p>
-        )}
-
-        {success && (
-          <p className="mb-3 text-sm text-green-600 text-center">
-            {success}
-          </p>
-        )}
-
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">
-            New Password
-          </label>
-          <input
-            type="password"
-            className="w-full border px-3 py-2 rounded"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+                <CardContent>
+                    <Suspense fallback={<div className="text-center py-8">Loading...</div>}>
+                        <ResetPasswordContent />
+                    </Suspense>
+                </CardContent>
+            </Card>
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            className="w-full border px-3 py-2 rounded"
-            value={confirmPassword}
-            onChange={(e) =>
-              setConfirmPassword(e.target.value)
-            }
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 disabled:opacity-60"
-        >
-          {loading ? "Resetting..." : "Reset Password"}
-        </button>
-      </form>
-    </div>
-  );
+    );
 }
