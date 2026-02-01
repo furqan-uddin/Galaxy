@@ -54,6 +54,19 @@ export default function ContactPage() {
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-6">
         <BackButton />
+
+        {/* Intro Section */}
+        <div className="text-center space-y-3 mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Get In Touch</h1>
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
+            Have questions about the platform? Want to provide feedback or report an issue?
+            We'd love to hear from you.
+          </p>
+          <p className="text-sm text-gray-500 max-w-xl mx-auto">
+            Fill out the form below and we'll get back to you as soon as possible.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Contact Form */}
           <Card>

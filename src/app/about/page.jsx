@@ -24,16 +24,24 @@ export default function AboutPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <p className="text-gray-700 leading-relaxed">
-                            Galaxy is a modern, secure, and scalable platform built with cutting-edge technologies.
-                            Our mission is to provide a robust foundation for web applications that prioritize
-                            security, user experience, and developer productivity.
+                            Galaxy is a demonstration platform showcasing modern web development best practices.
+                            This project illustrates how to build a secure, scalable, and maintainable web application
+                            using enterprise-grade technologies and architectural patterns.
                         </p>
                         <p className="text-gray-700 leading-relaxed">
-                            Built with Next.js, powered by PostgreSQL, and secured with industry-standard
-                            authentication practices, Galaxy represents the best of modern web development.
+                            Built with Next.js 16, powered by PostgreSQL, and secured with industry-standard
+                            authentication practices, Galaxy represents a comprehensive example of full-stack development.
+                            The platform features role-based access control, secure authentication flows, and a clean,
+                            professional user interface.
+                        </p>
+                        <p className="text-gray-700 leading-relaxed">
+                            Whether you're learning modern web development, preparing for technical interviews, or
+                            evaluating technology stacks, this platform demonstrates production-ready code organization,
+                            security patterns, and user experience design.
                         </p>
                     </CardContent>
                 </Card>
+
 
                 <div className="grid md:grid-cols-3 gap-6">
                     <Card>
