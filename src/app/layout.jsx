@@ -10,7 +10,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <Navbar />
           {children}
-          <Toaster />
+          <Toaster position="top-right"/>
         </AuthProvider>
       </body>
     </html>

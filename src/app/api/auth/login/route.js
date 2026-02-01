@@ -5,10 +5,48 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { email, password } = body;
+    const { email, password, captchaToken } = await req.json();
 
-    // 1. Validate input
+    // 🔒 1. Validate captcha token
+    if (!captchaToken) {
+      return NextResponse.json(
+        { message: "Captcha token missing" },
+        { status: 400 }
+      );
+    }
+
+    // 🔒 2. Verify captcha with Google
+    const captchaRes = await fetch(
+      "https://www.google.com/recaptcha/api/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          secret: process.env.RECAPTCHA_SECRET_KEY,
+          response: captchaToken,
+        }),
+      }
+    );
+
+    const captchaData = await captchaRes.json();
+
+    const minScore =
+      process.env.NODE_ENV === "production" ? 0.5 : 0.1;
+
+    if (
+      !captchaData.success ||
+      captchaData.score < minScore ||
+      captchaData.action !== "login"
+    ) {
+      return NextResponse.json(
+        { message: "Captcha verification failed" },
+        { status: 403 }
+      );
+    }
+
+    // 🔒 3. Validate input
     if (!email || !password) {
       return NextResponse.json(
         { message: "Email and password are required" },
@@ -16,7 +54,7 @@ export async function POST(req) {
       );
     }
 
-    // 2. Find user
+    // 🔒 4. Find user
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -28,7 +66,14 @@ export async function POST(req) {
       );
     }
 
-    // 3. Compare password
+    if (!user.isEmailVerified) {
+      return NextResponse.json(
+        { message: "Please verify your email before logging in" },
+        { status: 403 }
+      );
+    }
+
+    // 🔒 5. Compare password
     const isPasswordValid = await comparePassword(
       password,
       user.password
@@ -41,13 +86,13 @@ export async function POST(req) {
       );
     }
 
-    // 4. Generate token
+    // 🔒 6. Generate JWT
     const token = generateToken({
       id: user.id,
       role: user.role,
     });
 
-    // 5. Log activity
+    // 🔒 7. Log activity
     await prisma.activityLog.create({
       data: {
         userId: user.id,
@@ -55,7 +100,7 @@ export async function POST(req) {
       },
     });
 
-    // 6. Send response
+    // ✅ 8. Success response
     return NextResponse.json({
       message: "Login successful",
       token,
