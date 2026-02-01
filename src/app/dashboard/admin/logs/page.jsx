@@ -23,6 +23,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { BackButton } from "@/components/ui/back-button";
 
 export default function AdminLogsPage() {
     const { user, loading } = useAuth();
@@ -72,8 +73,11 @@ export default function AdminLogsPage() {
 
     if (!user || user.role !== "ADMIN") return null;
 
+
+
     return (
         <div className="p-6 space-y-6 bg-gray-50/50 min-h-screen">
+            <BackButton />
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">System Logs</h1>

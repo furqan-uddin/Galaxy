@@ -6,12 +6,16 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
+    CardDescription
 } from "@/components/ui/card";
+import { BackButton } from "@/components/ui/back-button";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 function ProfileContent() {
@@ -83,9 +87,11 @@ function ProfileContent() {
         }
     };
 
+
     return (
         <div className="min-h-screen bg-gray-50/50 p-6">
             <div className="max-w-4xl mx-auto space-y-6">
+                <BackButton />
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* User Info & Image */}
                     <div className="w-full md:w-1/3 space-y-6">
